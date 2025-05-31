@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { generateText, type GeminiResponse } from '../services/gemini'
 
 interface Transaction {
   hash: string
@@ -28,12 +29,50 @@ const error = ref('')
 const currentPage = ref(1)
 const hasMore = ref(true)
 const nextPageParams = ref<NextPageParams | null>(null)
+const analysis = ref<GeminiResponse | null>(null)
+const analyzing = ref(false)
+
+const analyzeTransactions = async () => {
+  if (transactions.value.length === 0) return
+
+  analyzing.value = true
+  try {
+    // Create a prompt that includes transaction details
+    const prompt = `Analyze these Ethereum transactions and identify any potential anomalies or suspicious patterns:
+
+${transactions.value.map(tx => `
+Transaction Hash: ${tx.hash}
+From: ${tx.from}
+To: ${tx.to}
+Value: ${tx.value}
+Method: ${tx.method}
+Status: ${tx.status}
+Fee: ${tx.fee.value}
+Timestamp: ${tx.timestamp}
+Block Number: ${tx.blockNumber}
+`).join('\n')}
+
+Please provide a detailed analysis focusing on:
+1. Unusual transaction patterns and anomaly
+2. Potential security concerns
+3. Suspicious activity indicators
+4. Recommendations for further investigation
+5. A short summary for the transaction`
+
+    analysis.value = await generateText(prompt)
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Failed to analyze transactions'
+  } finally {
+    analyzing.value = false
+  }
+}
 
 const fetchTransactions = async (isNewSearch: boolean = false) => {
   if (!address.value) return
   
   loading.value = true
   error.value = ''
+  analysis.value = null
   
   try {
     let url = `https://optimism.blockscout.com/api/v2/addresses/${address.value}/transactions`
@@ -74,6 +113,9 @@ const fetchTransactions = async (isNewSearch: boolean = false) => {
       if (!isNewSearch) {
         currentPage.value++
       }
+      
+      // Automatically analyze transactions after fetching
+      await analyzeTransactions()
     }
   } catch (e) {
     error.value = 'Failed to fetch transactions'
@@ -121,6 +163,22 @@ const loadPreviousPage = () => {
     </div>
 
     <div v-if="error" class="text-red-600 mb-8">{{ error }}</div>
+
+    <!-- Analysis Section -->
+    <div v-if="analyzing" class="w-full max-w-2xl mb-8">
+      <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-gray-600">Analyzing transactions...</p>
+      </div>
+    </div>
+
+    <div v-if="analysis?.text" class="w-full max-w-2xl mb-8">
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Transaction Analysis</h3>
+        <div class="prose prose-sm max-w-none">
+          <p class="whitespace-pre-wrap text-gray-700">{{ analysis.text }}</p>
+        </div>
+      </div>
+    </div>
 
     <div v-if="transactions.length > 0" class="mt-8 bg-white shadow overflow-hidden sm:rounded-md w-full">
       <ul class="divide-y divide-gray-200">
