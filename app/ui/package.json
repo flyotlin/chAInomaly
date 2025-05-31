@@ -8,7 +8,11 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build"
+    "type-check": "vue-tsc --build",
+    "format": "prettier --write \"src/**/*.{js,ts,vue}\"",
+    "format:check": "prettier --check \"src/**/*.{js,ts,vue}\"",
+    "lint": "eslint --ext .js,.ts,.vue src/",
+    "lint:fix": "eslint --ext .js,.ts,.vue src/ --fix"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -24,9 +28,14 @@
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",
     "@types/node": "^22.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.33.0",
+    "@typescript-eslint/parser": "^8.33.0",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/tsconfig": "^0.7.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.1",
     "npm-run-all2": "^7.0.2",
+    "prettier": "^3.5.3",
     "typescript": "~5.8.0",
     "vite": "^6.2.4",
     "vite-plugin-vue-devtools": "^7.7.2",
