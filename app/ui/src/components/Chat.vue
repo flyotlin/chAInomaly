@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, inject } from 'vue';
+import { ref, onMounted, inject, computed, watch } from 'vue';
+import type { Ref } from 'vue';
 import { sendMessage, loadChatHistory, saveChatHistory, type ChatMessage } from '../services/gemini';
 
 interface Transaction {
@@ -22,10 +23,19 @@ const newMessage = ref('');
 const isGenerating = ref(false);
 
 // Get the selected transactions from the parent
-const selectedTransactions = inject<Set<string>>('selectedTransactions', new Set());
+const selectedTransactions = inject<{ set: Set<string> }>('selectedTransactions', { set: new Set() });
+
+// Create a computed property to track selected transactions
+const selectedTransactionsList = computed(() => Array.from(selectedTransactions.set));
+
+// Watch for changes to selected transactions
+watch(selectedTransactionsList, (newList) => {
+  console.log('Selected transactions changed:', newList);
+}, { immediate: true });
 
 const toggleChat = () => {
   isOpen.value = !isOpen.value;
+  console.log('Selected transactions:', selectedTransactionsList.value);
 };
 
 const handleSendMessage = async () => {
@@ -44,8 +54,8 @@ const handleSendMessage = async () => {
   try {
     // Include transaction context in the prompt if available
     let prompt = userMessage.text;
-    if (selectedTransactions.size > 0) {
-      const context = `Context: Analyzing the following transactions:\n${Array.from(selectedTransactions).map(hash => `
+    if (selectedTransactionsList.value.length > 0) {
+      const context = `Context: Analyzing the following transactions:\n${selectedTransactionsList.value.map((hash: string) => `
 Transaction ${hash}:
 - Hash: ${hash}
 - Selected for analysis
@@ -110,9 +120,16 @@ onMounted(async () => {
       <div class="p-4 border-b flex justify-between items-center bg-indigo-600 text-white rounded-t-lg">
         <div class="flex items-center space-x-2">
           <h3 class="font-medium">Chat with Gemini</h3>
-          <span v-if="selectedTransactions.size > 0" class="text-xs bg-indigo-500 px-2 py-1 rounded-full">
-            {{ selectedTransactions.size }} transactions selected
-          </span>
+          <div v-if="selectedTransactionsList.length > 0" class="flex items-center space-x-2">
+            <span class="text-xs bg-indigo-500 px-2 py-1 rounded-full">
+              {{ selectedTransactionsList.length }} selected
+            </span>
+            <div class="text-xs text-indigo-200">
+              <span v-if="selectedTransactionsList.length === 1">Transaction</span>
+              <span v-else>Transactions</span>
+              selected for analysis
+            </div>
+          </div>
         </div>
         <button
           @click="toggleChat"
@@ -135,6 +152,16 @@ onMounted(async () => {
 
       <!-- Messages -->
       <div class="flex-1 overflow-y-auto p-4 space-y-6">
+        <!-- Selected Transactions Preview -->
+        <div v-if="selectedTransactionsList.length > 0" class="bg-indigo-50 rounded-lg p-4 mb-4">
+          <div class="text-sm text-indigo-800 font-medium mb-2">Selected Transactions:</div>
+          <div class="space-y-2">
+            <div v-for="hash in selectedTransactionsList" :key="hash" class="text-xs text-indigo-600 font-mono">
+              {{ hash.slice(0, 6) }}...{{ hash.slice(-4) }}
+            </div>
+          </div>
+        </div>
+
         <div
           v-for="(message, index) in messages"
           :key="index"
@@ -159,7 +186,7 @@ onMounted(async () => {
           <input
             v-model="newMessage"
             type="text"
-            :placeholder="selectedTransactions.size > 0 ? 'Ask about the selected transactions...' : 'Type your message...'"
+            :placeholder="selectedTransactionsList.length > 0 ? 'Ask about the selected transactions...' : 'Type your message...'"
             class="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 bg-white"
             :disabled="isGenerating"
           />

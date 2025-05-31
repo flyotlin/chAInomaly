@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, provide } from 'vue';
+  import { ref, provide, reactive, inject } from 'vue';
   import { generateText, type GeminiResponse } from '../services/gemini';
   import SearchInput from './SearchInput.vue';
   import TransactionAnalysis from './TransactionAnalysis.vue';
@@ -38,20 +38,20 @@
   const analysis = ref<GeminiResponse | null>(null);
   const analyzing = ref(false);
   const isHistoryExpanded = ref(true);
-  const selectedTransactions = ref<Set<string>>(new Set());
-
-  // Provide selected transactions to the Chat component
-  provide('selectedTransactions', selectedTransactions);
+  const selectedTransactions = inject<{ set: Set<string> }>('selectedTransactions', { set: new Set() });
 
   const toggleHistory = () => {
     isHistoryExpanded.value = !isHistoryExpanded.value;
   };
 
   const handleTransactionSelect = (transaction: Transaction) => {
-    if (selectedTransactions.value.has(transaction.hash)) {
-      selectedTransactions.value.delete(transaction.hash);
+    console.log('Selecting transaction:', transaction.hash);
+    if (selectedTransactions.set.has(transaction.hash)) {
+      selectedTransactions.set.delete(transaction.hash);
+      console.log('Transaction deselected. Current set:', Array.from(selectedTransactions.set));
     } else {
-      selectedTransactions.value.add(transaction.hash);
+      selectedTransactions.set.add(transaction.hash);
+      console.log('Transaction selected. Current set:', Array.from(selectedTransactions.set));
     }
   };
 
@@ -180,8 +180,8 @@ Please format your response using markdown for better readability.`;
           @toggle="toggleHistory"
         >
           <template #extra>
-            <span v-if="selectedTransactions.size > 0" class="text-sm text-white bg-indigo-400 px-2 py-1 rounded-full">
-              {{ selectedTransactions.size }} selected
+            <span v-if="selectedTransactions.set.size > 0" class="text-sm text-white bg-indigo-400 px-2 py-1 rounded-full">
+              {{ selectedTransactions.set.size }} selected
             </span>
           </template>
         </CollapsibleHeader>
@@ -192,7 +192,7 @@ Please format your response using markdown for better readability.`;
               v-for="tx in transactions"
               :key="tx.hash"
               :transaction="tx"
-              :is-selected="selectedTransactions.has(tx.hash)"
+              :is-selected="selectedTransactions.set.has(tx.hash)"
               @select="handleTransactionSelect"
             />
           </ul>
