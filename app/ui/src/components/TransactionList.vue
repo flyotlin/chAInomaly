@@ -15,19 +15,44 @@ interface Transaction {
   }
 }
 
+interface NextPageParams {
+  block_number: number
+  index: number
+  items_count: number
+}
+
 const address = ref('')
 const transactions = ref<Transaction[]>([])
 const loading = ref(false)
 const error = ref('')
+const currentPage = ref(1)
+const hasMore = ref(true)
+const nextPageParams = ref<NextPageParams | null>(null)
 
-const fetchTransactions = async () => {
+const fetchTransactions = async (isNewSearch: boolean = false) => {
   if (!address.value) return
   
   loading.value = true
   error.value = ''
   
   try {
-    const response = await fetch(`https://optimism.blockscout.com/api/v2/addresses/${address.value}/transactions`)
+    let url = `https://optimism.blockscout.com/api/v2/addresses/${address.value}/transactions`
+    
+    if (isNewSearch) {
+      // Reset pagination for new search
+      nextPageParams.value = null
+      currentPage.value = 1
+    } else if (nextPageParams.value) {
+      // Append next page parameters
+      const params = new URLSearchParams({
+        block_number: nextPageParams.value.block_number.toString(),
+        index: nextPageParams.value.index.toString(),
+        items_count: nextPageParams.value.items_count.toString()
+      })
+      url += `?${params.toString()}`
+    }
+
+    const response = await fetch(url)
     const data = await response.json()
     
     if (data.items) {
@@ -44,12 +69,30 @@ const fetchTransactions = async () => {
           value: (Number(tx.fee.value) / 1e18).toFixed(6) + ' ETH'
         }
       }))
+      hasMore.value = data.next_page_params !== null
+      nextPageParams.value = data.next_page_params
+      if (!isNewSearch) {
+        currentPage.value++
+      }
     }
   } catch (e) {
     error.value = 'Failed to fetch transactions'
     console.error(e)
   } finally {
     loading.value = false
+  }
+}
+
+const loadNextPage = () => {
+  if (!loading.value && hasMore.value) {
+    fetchTransactions()
+  }
+}
+
+const loadPreviousPage = () => {
+  // Since Blockscout API doesn't support going back, we'll need to start a new search
+  if (!loading.value && currentPage.value > 1) {
+    fetchTransactions(true)
   }
 }
 </script>
@@ -65,10 +108,10 @@ const fetchTransactions = async () => {
           v-model="address"
           class="flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
           placeholder="0x..."
-          @keyup.enter="fetchTransactions"
+          @keyup.enter="fetchTransactions(true)"
         />
         <button
-          @click="fetchTransactions"
+          @click="fetchTransactions(true)"
           class="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           :disabled="loading"
         >
@@ -109,6 +152,57 @@ const fetchTransactions = async () => {
           </div>
         </li>
       </ul>
+
+      <!-- Pagination Controls -->
+      <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div class="flex-1 flex justify-between sm:hidden">
+          <button
+            @click="loadPreviousPage"
+            :disabled="loading || currentPage === 1"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <button
+            @click="loadNextPage"
+            :disabled="loading || !hasMore"
+            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700">
+              Page <span class="font-medium">{{ currentPage }}</span>
+            </p>
+          </div>
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <button
+                @click="loadPreviousPage"
+                :disabled="loading || currentPage === 1"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="sr-only">Previous</span>
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              <button
+                @click="loadNextPage"
+                :disabled="loading || !hasMore"
+                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="sr-only">Next</span>
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template> 
