@@ -5,6 +5,7 @@ import SearchInput from './SearchInput.vue'
 import TransactionAnalysis from './TransactionAnalysis.vue'
 import TransactionItem from './TransactionItem.vue'
 import Pagination from './Pagination.vue'
+import CollapsibleHeader from './CollapsibleHeader.vue'
 
 interface Transaction {
   hash: string
@@ -35,6 +36,11 @@ const hasMore = ref(true)
 const nextPageParams = ref<NextPageParams | null>(null)
 const analysis = ref<GeminiResponse | null>(null)
 const analyzing = ref(false)
+const isHistoryExpanded = ref(true)
+
+const toggleHistory = () => {
+  isHistoryExpanded.value = !isHistoryExpanded.value
+}
 
 const analyzeTransactions = async () => {
   if (transactions.value.length === 0) return
@@ -141,36 +147,46 @@ const loadPreviousPage = () => {
 </script>
 
 <template>
-  <div class="w-full flex flex-col items-center">
+  <div class="w-full flex flex-col items-center space-y-8">
     <SearchInput
       v-model:address="address"
       :loading="loading"
       @search="fetchTransactions(true)"
     />
 
-    <div v-if="error" class="text-red-600 mb-8">{{ error }}</div>
+    <div v-if="error" class="text-red-600">{{ error }}</div>
 
     <TransactionAnalysis
       :analyzing="analyzing"
       :analysis="analysis"
     />
 
-    <div v-if="transactions.length > 0" class="mt-8 bg-white shadow overflow-hidden sm:rounded-md w-full">
-      <ul class="divide-y divide-gray-200">
-        <TransactionItem
-          v-for="tx in transactions"
-          :key="tx.hash"
-          :transaction="tx"
+    <div v-if="transactions.length > 0" class="w-full max-w-2xl">
+      <div class="bg-white shadow-lg rounded-lg border border-gray-100 overflow-hidden">
+        <CollapsibleHeader
+          title="Transaction History"
+          :is-expanded="isHistoryExpanded"
+          @toggle="toggleHistory"
         />
-      </ul>
 
-      <Pagination
-        :current-page="currentPage"
-        :loading="loading"
-        :has-more="hasMore"
-        @previous="loadPreviousPage"
-        @next="loadNextPage"
-      />
+        <div v-if="isHistoryExpanded" class="transition-all duration-200 ease-in-out">
+          <ul class="divide-y divide-gray-200">
+            <TransactionItem
+              v-for="tx in transactions"
+              :key="tx.hash"
+              :transaction="tx"
+            />
+          </ul>
+
+          <Pagination
+            :current-page="currentPage"
+            :loading="loading"
+            :has-more="hasMore"
+            @previous="loadPreviousPage"
+            @next="loadNextPage"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
