@@ -32,6 +32,7 @@
     target: Node;
     value: number;
     count: number;
+    totalValue: string;
   }
 
   const props = defineProps<{
@@ -67,9 +68,10 @@
     // Create nodes and links
     const nodes = new Set<string>();
     const fromNodes = new Set<string>();
-    const links: { source: string; target: string; value: number; count: number }[] = [];
-    const linkCounts = new Map<string, number>();
+    const links: { source: string; target: string; value: number; count: number; totalValue: string }[] = [];
+    const linkCounts = new Map<string, { count: number; totalValue: number }>();
 
+    // First pass: collect all nodes and their relationships
     props.transactions.forEach(tx => {
       nodes.add(tx.from);
       nodes.add(tx.to);
@@ -77,18 +79,22 @@
 
       // Create a unique key for each from-to pair
       const linkKey = `${tx.from}-${tx.to}`;
-      const currentCount = linkCounts.get(linkKey) || 0;
-      linkCounts.set(linkKey, currentCount + 1);
+      const current = linkCounts.get(linkKey) || { count: 0, totalValue: 0 };
+      linkCounts.set(linkKey, {
+        count: current.count + 1,
+        totalValue: current.totalValue + parseFloat(tx.value)
+      });
     });
 
-    // Create links with counts
-    linkCounts.forEach((count, key) => {
+    // Create links with counts and values
+    linkCounts.forEach((data, key) => {
       const [source, target] = key.split('-');
       links.push({
         source,
         target,
-        value: 1, // We'll use count for the label instead
-        count,
+        value: 1,
+        count: data.count,
+        totalValue: data.totalValue.toFixed(4)
       });
     });
 
@@ -98,13 +104,27 @@
       isInputAddress: id.toLowerCase() === props.address.toLowerCase(),
     }));
 
+    // Create a map of node IDs to node objects
     const nodeMap = new Map(nodeArray.map(node => [node.id, node]));
-    const typedLinks: Link[] = links.map(link => ({
-      source: nodeMap.get(link.source)!,
-      target: nodeMap.get(link.target)!,
-      value: link.value,
-      count: link.count,
-    }));
+
+    // Create typed links with proper node references
+    const typedLinks: Link[] = links.map(link => {
+      const sourceNode = nodeMap.get(link.source);
+      const targetNode = nodeMap.get(link.target);
+      
+      if (!sourceNode || !targetNode) {
+        console.error('Missing node reference:', { source: link.source, target: link.target });
+        return null;
+      }
+
+      return {
+        source: sourceNode,
+        target: targetNode,
+        value: link.value,
+        count: link.count,
+        totalValue: link.totalValue
+      };
+    }).filter((link): link is Link => link !== null);
 
     console.log('Created nodes and links:', {
       nodes: nodeArray.length,
@@ -179,7 +199,7 @@
       .attr('text-anchor', 'middle')
       .attr('font-size', 10)
       .attr('fill', '#666')
-      .text(d => d.count);
+      .text(d => `${d.count} tx (${d.totalValue} ETH)`);
 
     // Create nodes
     const node = svg
