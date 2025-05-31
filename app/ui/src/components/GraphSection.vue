@@ -23,6 +23,8 @@ interface Node extends d3.SimulationNodeDatum {
   y?: number
   fx?: number | null
   fy?: number | null
+  isFrom: boolean
+  isInputAddress: boolean
 }
 
 interface Link extends d3.SimulationLinkDatum<Node> {
@@ -33,6 +35,7 @@ interface Link extends d3.SimulationLinkDatum<Node> {
 
 const props = defineProps<{
   transactions: Transaction[]
+  address: string
 }>()
 
 const isExpanded = ref(false)
@@ -62,11 +65,13 @@ const drawGraph = () => {
 
   // Create nodes and links
   const nodes = new Set<string>()
+  const fromNodes = new Set<string>()
   const links: { source: string; target: string; value: number }[] = []
 
   props.transactions.forEach(tx => {
     nodes.add(tx.from)
     nodes.add(tx.to)
+    fromNodes.add(tx.from)
     links.push({
       source: tx.from,
       target: tx.to,
@@ -74,7 +79,11 @@ const drawGraph = () => {
     })
   })
 
-  const nodeArray: Node[] = Array.from(nodes).map(id => ({ id }))
+  const nodeArray: Node[] = Array.from(nodes).map(id => ({ 
+    id,
+    isFrom: fromNodes.has(id),
+    isInputAddress: id.toLowerCase() === props.address.toLowerCase()
+  }))
   const nodeMap = new Map(nodeArray.map(node => [node.id, node]))
   const typedLinks: Link[] = links.map(link => ({
     source: nodeMap.get(link.source)!,
@@ -84,17 +93,24 @@ const drawGraph = () => {
 
   console.log('Created nodes and links:', {
     nodes: nodeArray.length,
-    links: typedLinks.length
+    links: typedLinks.length,
+    sampleLink: typedLinks[0],
+    sampleNode: nodeArray[0]
   })
 
   // Create the force simulation
   const simulation = d3.forceSimulation<Node>(nodeArray)
-    .force('link', d3.forceLink<Node, Link>(typedLinks).id(d => d.id).distance(100))
-    .force('charge', d3.forceManyBody().strength(-300))
+    .force('link', d3.forceLink<Node, Link>(typedLinks)
+      .id(d => d.id)
+      .distance(150)
+      .strength(1))
+    .force('charge', d3.forceManyBody().strength(-1000))
     .force('center', d3.forceCenter(
       graphContainer.value.clientWidth / 2,
       graphContainer.value.clientHeight / 2
     ))
+    .alpha(1)
+    .alphaDecay(0.01)
 
   // Create SVG
   const svg = d3.select(graphContainer.value)
@@ -109,17 +125,17 @@ const drawGraph = () => {
     .selectAll<SVGLineElement, Link>('line')
     .data(typedLinks)
     .join('line')
-    .attr('stroke', '#999')
-    .attr('stroke-opacity', 0.6)
-    .attr('stroke-width', d => Math.sqrt(d.value) / 1000)
+    .attr('stroke', '#000')
+    .attr('stroke-opacity', 0.8)
+    .attr('stroke-width', 2)
 
   // Create nodes
   const node = svg.append('g')
     .selectAll<SVGCircleElement, Node>('circle')
     .data(nodeArray)
     .join('circle')
-    .attr('r', 5)
-    .attr('fill', '#69b3a2')
+    .attr('r', 8)
+    .attr('fill', d => d.isInputAddress ? '#ef4444' : '#69b3a2')
     .call(drag(simulation))
 
   // Add labels
@@ -127,7 +143,7 @@ const drawGraph = () => {
     .selectAll<SVGTextElement, Node>('text')
     .data(nodeArray)
     .join('text')
-    .text(d => d.id.slice(0, 6) + '...')
+    .text(d => d.id.slice(0, 12))
     .attr('font-size', 10)
     .attr('dx', 12)
     .attr('dy', 4)
@@ -147,6 +163,19 @@ const drawGraph = () => {
     label
       .attr('x', d => d.x || 0)
       .attr('y', d => d.y || 0)
+  })
+
+  // Log simulation state
+  simulation.on('end', () => {
+    console.log('Simulation ended with positions:', {
+      nodes: nodeArray.map(n => ({ id: n.id, x: n.x, y: n.y })),
+      links: typedLinks.map(l => ({
+        source: l.source.id,
+        target: l.target.id,
+        sourcePos: { x: l.source.x, y: l.source.y },
+        targetPos: { x: l.target.x, y: l.target.y }
+      }))
+    })
   })
 
   // Drag behavior

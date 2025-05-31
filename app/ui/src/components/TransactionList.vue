@@ -161,7 +161,11 @@ const loadPreviousPage = () => {
       :analyzing="analyzing"
       :analysis="analysis"
     />
-    <GraphSection v-if="transactions.length > 0" :transactions="transactions" />
+    <GraphSection 
+      v-if="transactions.length > 0" 
+      :transactions="transactions"
+      :address="address"
+    />
 
     <div v-if="transactions.length > 0" class="w-full max-w-2xl">
       <div class="bg-white shadow-lg rounded-lg border border-gray-100 overflow-hidden">
