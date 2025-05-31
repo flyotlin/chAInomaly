@@ -6,10 +6,9 @@ chAInomaly is an advanced blockchain transaction analysis platform that leverage
 
 ## 🌟 Features
 
-- **Real-time Transaction Analysis**: View and analyze transactions on OP Mainnet in real-time
+- **Transaction Analysis**: View and analyze transactions on OP Mainnet
 - **AI-Powered Insights**: Get intelligent analysis of transaction patterns using Google's Gemini AI
 - **Interactive Visualization**: Explore transaction data through intuitive graphs and charts
-- **Smart Pattern Detection**: Identify unusual transaction patterns and potential anomalies
 - **User-Friendly Interface**: Clean, modern UI designed for both beginners and experts
 
 ## 🚀 Getting Started
