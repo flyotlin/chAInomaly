@@ -19,7 +19,7 @@
   // Create and provide the selected transactions state
   const selectedTransactions = reactive({
     set: new Set<string>(),
-    data: new Map<string, Transaction>()
+    data: new Map<string, Transaction>(),
   });
 
   provide('selectedTransactions', selectedTransactions);

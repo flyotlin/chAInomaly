@@ -34,7 +34,7 @@
               <h1
                 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
               >
-              chAInomaly
+                chAInomaly
               </h1>
             </div>
           </div>
@@ -49,14 +49,26 @@
       <div class="container mx-auto px-8 sm:px-12 lg:px-16">
         <div class="text-center mb-12 py-5">
           <div class="flex flex-col items-center">
-            <h2 class="text-5xl font-extrabold mb-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h2
+              class="text-5xl font-extrabold mb-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent"
+            >
               chAInomaly
             </h2>
             <span class="text-2xl text-gray-600 font-normal">Transaction Analyzer</span>
           </div>
           <p class="text-lg text-gray-600 py-2 flex items-center justify-center gap-2">
-            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <svg
+              class="w-5 h-5 text-indigo-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
             </svg>
             Enter an Ethereum address to view its recent transactions on OP Mainnet
           </p>

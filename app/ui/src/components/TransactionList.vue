@@ -38,7 +38,10 @@
   const analysis = ref<GeminiResponse | null>(null);
   const analyzing = ref(false);
   const isHistoryExpanded = ref(true);
-  const selectedTransactions = inject<{ set: Set<string>, data: Map<string, Transaction> }>('selectedTransactions', { set: new Set(), data: new Map() });
+  const selectedTransactions = inject<{ set: Set<string>; data: Map<string, Transaction> }>(
+    'selectedTransactions',
+    { set: new Set(), data: new Map() }
+  );
 
   const toggleHistory = () => {
     isHistoryExpanded.value = !isHistoryExpanded.value;
@@ -182,7 +185,10 @@ Please format your response using markdown for better readability.`;
           @toggle="toggleHistory"
         >
           <template #extra>
-            <span v-if="selectedTransactions.set.size > 0" class="text-sm text-white bg-indigo-400 px-2 py-1 rounded-full">
+            <span
+              v-if="selectedTransactions.set.size > 0"
+              class="text-sm text-white bg-indigo-400 px-2 py-1 rounded-full"
+            >
               {{ selectedTransactions.set.size }} selected
             </span>
           </template>

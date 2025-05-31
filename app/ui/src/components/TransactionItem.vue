@@ -76,7 +76,10 @@ Focus only on the most important aspects. Keep it extremely concise.`;
 </script>
 
 <template>
-  <li class="px-6 py-6 hover:bg-gray-50 transition duration-150 ease-in-out" :class="{ 'bg-indigo-50': isSelected }">
+  <li
+    class="px-6 py-6 hover:bg-gray-50 transition duration-150 ease-in-out"
+    :class="{ 'bg-indigo-50': isSelected }"
+  >
     <div class="flex items-start justify-between">
       <div class="flex-1 min-w-0">
         <div class="flex space-x-12 items-center">
@@ -139,7 +142,6 @@ Focus only on the most important aspects. Keep it extremely concise.`;
         </div>
       </div>
       <div class="ml-4 flex-shrink-0 flex items-center space-x-2">
-
         <div class="group relative">
           <button
             class="text-gray-400 hover:text-gray-500 focus:outline-none px-2"

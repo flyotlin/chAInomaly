@@ -76,7 +76,7 @@ export const initializeChat = async () => {
         temperature: 0.7,
       },
     });
-    
+
     chatHistory = {
       messages: [],
       model: chat,

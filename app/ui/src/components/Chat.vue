@@ -1,61 +1,75 @@
 <script setup lang="ts">
-import { ref, onMounted, inject, computed, watch } from 'vue';
-import { sendMessage, loadChatHistory, saveChatHistory, type ChatMessage } from '../services/gemini';
-import { marked } from 'marked';
+  import { ref, onMounted, inject, computed, watch } from 'vue';
+  import {
+    sendMessage,
+    loadChatHistory,
+    saveChatHistory,
+    type ChatMessage,
+  } from '../services/gemini';
+  import { marked } from 'marked';
 
-interface Transaction {
-  hash: string;
-  from: string;
-  to: string;
-  value: string;
-  timestamp: string;
-  blockNumber: number;
-  method: string | null;
-  status: string;
-  fee: {
+  interface Transaction {
+    hash: string;
+    from: string;
+    to: string;
     value: string;
+    timestamp: string;
+    blockNumber: number;
+    method: string | null;
+    status: string;
+    fee: {
+      value: string;
+    };
+  }
+
+  const isOpen = ref(false);
+  const messages = ref<ChatMessage[]>([]);
+  const newMessage = ref('');
+  const isGenerating = ref(false);
+
+  // Get the selected transactions from the parent
+  const selectedTransactions = inject<{ set: Set<string>; data: Map<string, Transaction> }>(
+    'selectedTransactions',
+    { set: new Set(), data: new Map() }
+  );
+
+  // Create a computed property to track selected transactions
+  const selectedTransactionsList = computed(() => Array.from(selectedTransactions.data.values()));
+
+  // Watch for changes to selected transactions
+  watch(
+    selectedTransactionsList,
+    newList => {
+      console.log('Selected transactions changed:', newList);
+    },
+    { immediate: true }
+  );
+
+  const toggleChat = () => {
+    isOpen.value = !isOpen.value;
+    console.log('Selected transactions:', selectedTransactionsList.value);
   };
-}
 
-const isOpen = ref(false);
-const messages = ref<ChatMessage[]>([]);
-const newMessage = ref('');
-const isGenerating = ref(false);
+  const handleSendMessage = async () => {
+    if (!newMessage.value.trim() || isGenerating.value) return;
 
-// Get the selected transactions from the parent
-const selectedTransactions = inject<{ set: Set<string>, data: Map<string, Transaction> }>('selectedTransactions', { set: new Set(), data: new Map() });
+    const userMessage: ChatMessage = {
+      text: newMessage.value,
+      isUser: true,
+      timestamp: new Date().toISOString(),
+    };
 
-// Create a computed property to track selected transactions
-const selectedTransactionsList = computed(() => Array.from(selectedTransactions.data.values()));
+    messages.value.push(userMessage);
+    newMessage.value = '';
+    isGenerating.value = true;
 
-// Watch for changes to selected transactions
-watch(selectedTransactionsList, (newList) => {
-  console.log('Selected transactions changed:', newList);
-}, { immediate: true });
-
-const toggleChat = () => {
-  isOpen.value = !isOpen.value;
-  console.log('Selected transactions:', selectedTransactionsList.value);
-};
-
-const handleSendMessage = async () => {
-  if (!newMessage.value.trim() || isGenerating.value) return;
-  
-  const userMessage: ChatMessage = {
-    text: newMessage.value,
-    isUser: true,
-    timestamp: new Date().toISOString()
-  };
-  
-  messages.value.push(userMessage);
-  newMessage.value = '';
-  isGenerating.value = true;
-  
-  try {
-    // Include transaction context in the prompt if available
-    let prompt = userMessage.text;
-    if (selectedTransactionsList.value.length > 0) {
-      const context = `Context: Analyzing the following transactions:\n${selectedTransactionsList.value.map((tx: Transaction) => `
+    try {
+      // Include transaction context in the prompt if available
+      let prompt = userMessage.text;
+      if (selectedTransactionsList.value.length > 0) {
+        const context = `Context: Analyzing the following transactions:\n${selectedTransactionsList.value
+          .map(
+            (tx: Transaction) => `
 Transaction ${tx.hash}:
 - Hash: ${tx.hash}
 - From: ${tx.from}
@@ -66,35 +80,37 @@ Transaction ${tx.hash}:
 - Fee: ${tx.fee.value}
 - Timestamp: ${tx.timestamp}
 - Block Number: ${tx.blockNumber}
-`).join('\n')}\n\nQuestion: ${userMessage.text}`;
-      prompt = context;
+`
+          )
+          .join('\n')}\n\nQuestion: ${userMessage.text}`;
+        prompt = context;
+      }
+
+      const response = await sendMessage(prompt);
+      messages.value.push({
+        text: response,
+        isUser: false,
+        timestamp: new Date().toISOString(),
+      });
+      saveChatHistory();
+    } catch (error) {
+      console.error('Failed to get response:', error);
+      messages.value.push({
+        text: 'Sorry, I encountered an error. Please try again.',
+        isUser: false,
+        timestamp: new Date().toISOString(),
+      });
+    } finally {
+      isGenerating.value = false;
     }
+  };
 
-    const response = await sendMessage(prompt);
-    messages.value.push({
-      text: response,
-      isUser: false,
-      timestamp: new Date().toISOString()
-    });
-    saveChatHistory();
-  } catch (error) {
-    console.error('Failed to get response:', error);
-    messages.value.push({
-      text: 'Sorry, I encountered an error. Please try again.',
-      isUser: false,
-      timestamp: new Date().toISOString()
-    });
-  } finally {
-    isGenerating.value = false;
-  }
-};
-
-onMounted(async () => {
-  const savedMessages = await loadChatHistory();
-  if (savedMessages.length > 0) {
-    messages.value = savedMessages;
-  }
-});
+  onMounted(async () => {
+    const savedMessages = await loadChatHistory();
+    if (savedMessages.length > 0) {
+      messages.value = savedMessages;
+    }
+  });
 </script>
 
 <template>
@@ -124,7 +140,9 @@ onMounted(async () => {
     <!-- Chat Dialog -->
     <div v-else class="bg-white rounded-lg shadow-xl w-96 h-[500px] flex flex-col">
       <!-- Header -->
-      <div class="p-4 border-b flex justify-between items-center bg-indigo-600 text-white rounded-t-lg">
+      <div
+        class="p-4 border-b flex justify-between items-center bg-indigo-600 text-white rounded-t-lg"
+      >
         <div class="flex items-center space-x-2">
           <h3 class="font-medium">Chat with Gemini</h3>
           <div v-if="selectedTransactionsList.length > 0" class="flex items-center space-x-2">
@@ -158,7 +176,11 @@ onMounted(async () => {
         <div v-if="selectedTransactionsList.length > 0" class="bg-indigo-50 rounded-lg p-4 mb-4">
           <div class="text-sm text-indigo-800 font-medium mb-2">Selected Transactions:</div>
           <div class="space-y-2">
-            <div v-for="tx in selectedTransactionsList" :key="tx.hash" class="text-xs text-indigo-600 font-mono">
+            <div
+              v-for="tx in selectedTransactionsList"
+              :key="tx.hash"
+              class="text-xs text-indigo-600 font-mono"
+            >
               {{ tx.hash.slice(0, 12) }}
             </div>
           </div>
@@ -175,7 +197,7 @@ onMounted(async () => {
               : 'bg-gray-100 text-gray-800 rounded-bl-none',
           ]"
         >
-          <div 
+          <div
             class="text-sm prose prose-sm max-w-none break-words"
             :class="message.isUser ? 'prose-invert' : ''"
             v-html="message.isUser ? message.text : marked(message.text)"
@@ -192,7 +214,11 @@ onMounted(async () => {
           <input
             v-model="newMessage"
             type="text"
-            :placeholder="selectedTransactionsList.length > 0 ? 'Ask about the selected transactions...' : 'Type your message...'"
+            :placeholder="
+              selectedTransactionsList.length > 0
+                ? 'Ask about the selected transactions...'
+                : 'Type your message...'
+            "
             class="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 bg-white"
             :disabled="isGenerating"
           />
@@ -211,117 +237,117 @@ onMounted(async () => {
 </template>
 
 <style>
-.prose {
-  max-width: 65ch;
-  color: #374151;
-}
+  .prose {
+    max-width: 65ch;
+    color: #374151;
+  }
 
-.prose h1 {
-  color: #111827;
-  font-weight: 800;
-  font-size: 2.25em;
-  margin-top: 0;
-  margin-bottom: 0.8888889em;
-  line-height: 1.1111111;
-}
+  .prose h1 {
+    color: #111827;
+    font-weight: 800;
+    font-size: 2.25em;
+    margin-top: 0;
+    margin-bottom: 0.8888889em;
+    line-height: 1.1111111;
+  }
 
-.prose h2 {
-  color: #111827;
-  font-weight: 700;
-  font-size: 1.5em;
-  margin-top: 2em;
-  margin-bottom: 1em;
-  line-height: 1.3333333;
-}
+  .prose h2 {
+    color: #111827;
+    font-weight: 700;
+    font-size: 1.5em;
+    margin-top: 2em;
+    margin-bottom: 1em;
+    line-height: 1.3333333;
+  }
 
-.prose h3 {
-  color: #111827;
-  font-weight: 600;
-  font-size: 1.25em;
-  margin-top: 1.6em;
-  margin-bottom: 0.6em;
-  line-height: 1.6;
-}
+  .prose h3 {
+    color: #111827;
+    font-weight: 600;
+    font-size: 1.25em;
+    margin-top: 1.6em;
+    margin-bottom: 0.6em;
+    line-height: 1.6;
+  }
 
-.prose p {
-  margin-top: 1.25em;
-  margin-bottom: 1.25em;
-}
+  .prose p {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+  }
 
-.prose ul {
-  margin-top: 1.25em;
-  margin-bottom: 1.25em;
-  list-style-type: disc;
-  padding-left: 1.625em;
-}
+  .prose ul {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    list-style-type: disc;
+    padding-left: 1.625em;
+  }
 
-.prose ol {
-  margin-top: 1.25em;
-  margin-bottom: 1.25em;
-  list-style-type: decimal;
-  padding-left: 1.625em;
-}
+  .prose ol {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    list-style-type: decimal;
+    padding-left: 1.625em;
+  }
 
-.prose li {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-}
+  .prose li {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
 
-.prose pre {
-  color: #e5e7eb;
-  background-color: #1f2937;
-  overflow-x: auto;
-  font-size: 0.875em;
-  line-height: 1.7142857;
-  margin-top: 1.7142857em;
-  margin-bottom: 1.7142857em;
-  border-radius: 0.375rem;
-  padding: 0.8571429em 1.1428571em;
-  max-width: 100%;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
+  .prose pre {
+    color: #e5e7eb;
+    background-color: #1f2937;
+    overflow-x: auto;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+    margin-top: 1.7142857em;
+    margin-bottom: 1.7142857em;
+    border-radius: 0.375rem;
+    padding: 0.8571429em 1.1428571em;
+    max-width: 100%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
 
-.prose blockquote {
-  font-weight: 500;
-  font-style: italic;
-  color: #111827;
-  border-left-width: 0.25rem;
-  border-left-color: #e5e7eb;
-  quotes: '\201C' '\201D' '\2018' '\2019';
-  margin-top: 1.6em;
-  margin-bottom: 1.6em;
-  padding-left: 1em;
-}
+  .prose blockquote {
+    font-weight: 500;
+    font-style: italic;
+    color: #111827;
+    border-left-width: 0.25rem;
+    border-left-color: #e5e7eb;
+    quotes: '\201C' '\201D' '\2018' '\2019';
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+    padding-left: 1em;
+  }
 
-/* Invert colors for user messages */
-.prose-invert {
-  color: #e5e7eb;
-}
+  /* Invert colors for user messages */
+  .prose-invert {
+    color: #e5e7eb;
+  }
 
-.prose-invert h1,
-.prose-invert h2,
-.prose-invert h3 {
-  color: #f9fafb;
-}
+  .prose-invert h1,
+  .prose-invert h2,
+  .prose-invert h3 {
+    color: #f9fafb;
+  }
 
-.prose-invert code {
-  color: #f9fafb;
-  background-color: #374151;
-}
+  .prose-invert code {
+    color: #f9fafb;
+    background-color: #374151;
+  }
 
-.prose-invert blockquote {
-  color: #f9fafb;
-  border-left-color: #4b5563;
-}
+  .prose-invert blockquote {
+    color: #f9fafb;
+    border-left-color: #4b5563;
+  }
 
-.prose code {
-  color: #111827;
-  font-weight: 600;
-  font-size: 0.875em;
-  background-color: #f3f4f6;
-  padding: 0.2em 0.4em;
-  border-radius: 0.25em;
-  word-break: break-word;
-}
+  .prose code {
+    color: #111827;
+    font-weight: 600;
+    font-size: 0.875em;
+    background-color: #f3f4f6;
+    padding: 0.2em 0.4em;
+    border-radius: 0.25em;
+    word-break: break-word;
+  }
 </style>
