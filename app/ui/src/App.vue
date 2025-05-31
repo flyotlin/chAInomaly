@@ -35,7 +35,7 @@ import TransactionList from './components/TransactionList.vue'
     <footer class="bg-white shadow-lg w-full mt-auto">
       <div class="container mx-auto py-4 px-4 sm:px-6 lg:px-8">
         <p class="text-center text-sm text-gray-500">
-          Built for ETH Prague 2024
+          Built for ETH Prague 2025
         </p>
       </div>
     </footer>
