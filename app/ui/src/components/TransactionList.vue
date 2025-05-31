@@ -8,6 +8,11 @@ interface Transaction {
   value: string
   timestamp: string
   blockNumber: number
+  method: string | null
+  status: string
+  fee: {
+    value: string
+  }
 }
 
 const address = ref('')
@@ -25,14 +30,19 @@ const fetchTransactions = async () => {
     const response = await fetch(`https://optimism.blockscout.com/api/v2/addresses/${address.value}/transactions`)
     const data = await response.json()
     
-    if (data.data) {
-      transactions.value = data.data.map((tx: any) => ({
+    if (data.items) {
+      transactions.value = data.items.map((tx: any) => ({
         hash: tx.hash,
         from: tx.from.hash,
         to: tx.to.hash,
-        value: (Number(tx.value) / 1e18).toFixed(4) + ' ETH',
+        value: tx.value === "0" ? "0 ETH" : (Number(tx.value) / 1e18).toFixed(6) + ' ETH',
         timestamp: new Date(tx.timestamp).toLocaleString(),
-        blockNumber: tx.block
+        blockNumber: tx.block_number,
+        method: tx.method || 'transfer',
+        status: tx.status,
+        fee: {
+          value: (Number(tx.fee.value) / 1e18).toFixed(6) + ' ETH'
+        }
       }))
     }
   } catch (e) {
@@ -83,11 +93,18 @@ const fetchTransactions = async () => {
               <p class="text-sm text-gray-500">
                 To: {{ tx.to }}
               </p>
+              <p class="text-sm text-gray-500">
+                Method: {{ tx.method }}
+              </p>
             </div>
-            <div class="ml-4 flex-shrink-0">
+            <div class="ml-4 flex-shrink-0 text-right">
               <p class="text-sm font-medium text-gray-900">{{ tx.value }}</p>
               <p class="text-sm text-gray-500">Block: {{ tx.blockNumber }}</p>
               <p class="text-sm text-gray-500">{{ tx.timestamp }}</p>
+              <p class="text-sm text-gray-500">Fee: {{ tx.fee.value }}</p>
+              <p class="text-sm" :class="tx.status === 'ok' ? 'text-green-500' : 'text-red-500'">
+                {{ tx.status }}
+              </p>
             </div>
           </div>
         </li>
