@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { generateText, generateChatResponse, type GeminiResponse } from '../services/gemini';
+  import { ref } from 'vue';
+  import { generateText, generateChatResponse, type GeminiResponse } from '../services/gemini';
 
-const prompt = ref('');
-const response = ref<GeminiResponse | null>(null);
-const loading = ref(false);
-const error = ref('');
+  const prompt = ref('');
+  const response = ref<GeminiResponse | null>(null);
+  const loading = ref(false);
+  const error = ref('');
 
-const handleSubmit = async () => {
-  if (!prompt.value.trim()) return;
-  
-  loading.value = true;
-  error.value = '';
-  
-  try {
-    response.value = await generateText(prompt.value);
-    if (response.value.error) {
-      error.value = response.value.error;
+  const handleSubmit = async () => {
+    if (!prompt.value.trim()) return;
+
+    loading.value = true;
+    error.value = '';
+
+    try {
+      response.value = await generateText(prompt.value);
+      if (response.value.error) {
+        error.value = response.value.error;
+      }
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'An error occurred';
+    } finally {
+      loading.value = false;
     }
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'An error occurred';
-  } finally {
-    loading.value = false;
-  }
-};
+  };
 </script>
 
 <template>
@@ -60,4 +60,4 @@ const handleSubmit = async () => {
       <p class="text-gray-900 whitespace-pre-wrap">{{ response.text }}</p>
     </div>
   </div>
-</template> 
+</template>
