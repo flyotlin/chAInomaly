@@ -2,6 +2,27 @@
   import { RouterLink, RouterView } from 'vue-router';
   import TransactionList from '../components/TransactionList.vue';
   import { ref } from 'vue';
+
+
+  import GraphSection from '../components/GraphSection.vue';
+  import Chat from '../components/Chat.vue';
+
+  interface Transaction {
+    hash: string;
+    from: string;
+    to: string;
+    value: string;
+    timestamp: string;
+    blockNumber: number;
+    method: string | null;
+    status: string;
+    fee: {
+      value: string;
+    };
+  }
+
+  const address = ref('0x123...'); // Replace with your actual address
+  const transactions = ref<Transaction[]>([]); // Replace with your actual transactions
 </script>
 
 <template>
@@ -42,6 +63,8 @@
         <p class="text-center text-sm text-gray-500">Built for ETH Prague 2025</p>
       </div>
     </footer>
+
+    <Chat />
   </div>
 </template>
 
