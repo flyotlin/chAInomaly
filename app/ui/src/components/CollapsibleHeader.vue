@@ -14,7 +14,10 @@
     class="px-6 py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 flex items-center justify-between cursor-pointer"
     @click="$emit('toggle')"
   >
-    <h3 class="text-lg font-medium text-white">{{ title }}</h3>
+    <div class="flex items-center space-x-4">
+      <h3 class="text-lg font-medium text-white">{{ title }}</h3>
+      <slot name="extra"></slot>
+    </div>
     <button
       class="text-white hover:text-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-full p-1"
       @click.stop="$emit('toggle')"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref } from 'vue';
+  import { ref, provide } from 'vue';
   import { generateText, type GeminiResponse } from '../services/gemini';
   import SearchInput from './SearchInput.vue';
   import TransactionAnalysis from './TransactionAnalysis.vue';
@@ -38,9 +38,21 @@
   const analysis = ref<GeminiResponse | null>(null);
   const analyzing = ref(false);
   const isHistoryExpanded = ref(true);
+  const selectedTransactions = ref<Set<string>>(new Set());
+
+  // Provide selected transactions to the Chat component
+  provide('selectedTransactions', selectedTransactions);
 
   const toggleHistory = () => {
     isHistoryExpanded.value = !isHistoryExpanded.value;
+  };
+
+  const handleTransactionSelect = (transaction: Transaction) => {
+    if (selectedTransactions.value.has(transaction.hash)) {
+      selectedTransactions.value.delete(transaction.hash);
+    } else {
+      selectedTransactions.value.add(transaction.hash);
+    }
   };
 
   const analyzeTransactions = async () => {
@@ -166,11 +178,23 @@ Please format your response using markdown for better readability.`;
           title="Transaction History"
           :is-expanded="isHistoryExpanded"
           @toggle="toggleHistory"
-        />
+        >
+          <template #extra>
+            <span v-if="selectedTransactions.size > 0" class="text-sm text-white bg-indigo-400 px-2 py-1 rounded-full">
+              {{ selectedTransactions.size }} selected
+            </span>
+          </template>
+        </CollapsibleHeader>
 
         <div v-if="isHistoryExpanded" class="transition-all duration-200 ease-in-out">
           <ul class="divide-y divide-gray-200">
-            <TransactionItem v-for="tx in transactions" :key="tx.hash" :transaction="tx" />
+            <TransactionItem
+              v-for="tx in transactions"
+              :key="tx.hash"
+              :transaction="tx"
+              :is-selected="selectedTransactions.has(tx.hash)"
+              @select="handleTransactionSelect"
+            />
           </ul>
 
           <Pagination

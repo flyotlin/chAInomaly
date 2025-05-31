@@ -18,6 +18,11 @@
 
   const props = defineProps<{
     transaction: Transaction;
+    isSelected?: boolean;
+  }>();
+
+  const emit = defineEmits<{
+    (e: 'select', transaction: Transaction): void;
   }>();
 
   const isExpanded = ref(false);
@@ -26,6 +31,10 @@
 
   const toggleExpand = () => {
     isExpanded.value = !isExpanded.value;
+  };
+
+  const toggleSelect = () => {
+    emit('select', props.transaction);
   };
 
   const truncateHash = (hash: string) => {
@@ -67,7 +76,7 @@ Focus only on the most important aspects. Keep it extremely concise.`;
 </script>
 
 <template>
-  <li class="px-6 py-6 hover:bg-gray-50 transition duration-150 ease-in-out">
+  <li class="px-6 py-6 hover:bg-gray-50 transition duration-150 ease-in-out" :class="{ 'bg-indigo-50': isSelected }">
     <div class="flex items-start justify-between">
       <div class="flex-1 min-w-0">
         <div class="flex items-start space-x-6">
@@ -128,6 +137,27 @@ Focus only on the most important aspects. Keep it extremely concise.`;
         </div>
       </div>
       <div class="ml-4 flex-shrink-0 flex items-center space-x-2">
+        <div class="group relative">
+          <button
+            @click="toggleSelect"
+            class="text-gray-400 hover:text-indigo-600 focus:outline-none px-2"
+            :class="{ 'text-indigo-600': isSelected }"
+          >
+            <svg
+              class="h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+
         <div class="group relative">
           <button
             class="text-gray-400 hover:text-gray-500 focus:outline-none px-2"
