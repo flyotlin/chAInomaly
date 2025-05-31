@@ -23,6 +23,10 @@ const isExpanded = ref(false)
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value
 }
+
+const truncateHash = (hash: string) => {
+  return `${hash.slice(0, 16)}`
+}
 </script>
 
 <template>
@@ -39,9 +43,17 @@ const toggleExpand = () => {
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between">
-              <p class="text-sm font-medium text-indigo-600 truncate">
-                {{ transaction.hash }}
-              </p>
+              <div class="group relative">
+                <p class="text-sm font-medium text-indigo-600">
+                  {{ truncateHash(transaction.hash) }}
+                </p>
+                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block">
+                  <div class="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                    {{ transaction.hash }}
+                  </div>
+                  <div class="w-2 h-2 bg-gray-900 transform rotate-45 absolute -bottom-1 left-4"></div>
+                </div>
+              </div>
               <button 
                 @click="toggleExpand"
                 class="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none"
