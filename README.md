@@ -24,8 +24,8 @@ chAInomaly is an advanced blockchain transaction analysis platform that leverage
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/chain-anomaly-detector.git
-cd chain-anomaly-detector
+git clone https://github.com/flyotlin/chainomaly.git
+cd chainomaly
 ```
 
 2. Install dependencies:
