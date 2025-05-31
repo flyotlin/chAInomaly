@@ -37,7 +37,7 @@ const generateSummary = async () => {
   
   isGeneratingSummary.value = true
   try {
-    const prompt = `Analyze this Ethereum transaction and provide a brief summary focusing on key points:
+    const prompt = `Analyze this Ethereum transaction and provide a very brief summary in 1-2 sentences:
 
 Transaction Hash: ${props.transaction.hash}
 From: ${props.transaction.from}
@@ -49,7 +49,7 @@ Fee: ${props.transaction.fee.value}
 Timestamp: ${props.transaction.timestamp}
 Block Number: ${props.transaction.blockNumber}
 
-Please provide a concise 2-3 sentence summary highlighting any notable aspects of this transaction.`
+Focus only on the most important aspects. Keep it extremely concise.`
 
     const response = await generateText(prompt)
     summary.value = response.text
@@ -117,8 +117,8 @@ Please provide a concise 2-3 sentence summary highlighting any notable aspects o
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
             </svg>
           </button>
-          <div class="absolute right-0 bottom-full mb-2 hidden group-hover:block w-64">
-            <div class="bg-gray-900 text-white text-xs rounded py-2 px-3">
+          <div class="absolute right-0 bottom-full mb-2 hidden group-hover:block w-96">
+            <div class="bg-gray-900 text-white text-xs rounded py-3 px-4 max-h-48 overflow-y-auto">
               <div v-if="isGeneratingSummary" class="flex items-center space-x-2">
                 <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -126,7 +126,7 @@ Please provide a concise 2-3 sentence summary highlighting any notable aspects o
                 </svg>
                 <span>Generating summary...</span>
               </div>
-              <div v-else class="whitespace-normal">
+              <div v-else class="whitespace-normal leading-relaxed">
                 {{ summary || 'Hover to generate summary' }}
               </div>
             </div>
