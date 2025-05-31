@@ -6,6 +6,7 @@ import TransactionAnalysis from './TransactionAnalysis.vue'
 import TransactionItem from './TransactionItem.vue'
 import Pagination from './Pagination.vue'
 import CollapsibleHeader from './CollapsibleHeader.vue'
+import GraphSection from './GraphSection.vue'
 
 interface Transaction {
   hash: string
@@ -160,6 +161,7 @@ const loadPreviousPage = () => {
       :analyzing="analyzing"
       :analysis="analysis"
     />
+    <GraphSection v-if="transactions.length > 0" />
 
     <div v-if="transactions.length > 0" class="w-full max-w-2xl">
       <div class="bg-white shadow-lg rounded-lg border border-gray-100 overflow-hidden">
