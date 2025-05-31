@@ -1,33 +1,33 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+  import { ref } from 'vue';
 
-const isOpen = ref(false);
-const messages = ref<{ text: string; isUser: boolean }[]>([]);
-const newMessage = ref('');
+  const isOpen = ref(false);
+  const messages = ref<{ text: string; isUser: boolean }[]>([]);
+  const newMessage = ref('');
 
-const toggleChat = () => {
-  isOpen.value = !isOpen.value;
-};
+  const toggleChat = () => {
+    isOpen.value = !isOpen.value;
+  };
 
-const sendMessage = () => {
-  if (!newMessage.value.trim()) return;
-  
-  messages.value.push({
-    text: newMessage.value,
-    isUser: true
-  });
-  
-  // Here you can add your chat logic to get response
-  // For now, we'll just echo back
-  setTimeout(() => {
+  const sendMessage = () => {
+    if (!newMessage.value.trim()) return;
+
     messages.value.push({
-      text: `Echo: ${newMessage.value}`,
-      isUser: false
+      text: newMessage.value,
+      isUser: true,
     });
-  }, 1000);
-  
-  newMessage.value = '';
-};
+
+    // Here you can add your chat logic to get response
+    // For now, we'll just echo back
+    setTimeout(() => {
+      messages.value.push({
+        text: `Echo: ${newMessage.value}`,
+        isUser: false,
+      });
+    }, 1000);
+
+    newMessage.value = '';
+  };
 </script>
 
 <template>
@@ -55,12 +55,11 @@ const sendMessage = () => {
     </button>
 
     <!-- Chat Dialog -->
-    <div
-      v-else
-      class="bg-white rounded-lg shadow-xl w-96 h-[500px] flex flex-col"
-    >
+    <div v-else class="bg-white rounded-lg shadow-xl w-96 h-[500px] flex flex-col">
       <!-- Header -->
-      <div class="p-4 border-b flex justify-between items-center bg-indigo-600 text-white rounded-t-lg">
+      <div
+        class="p-4 border-b flex justify-between items-center bg-indigo-600 text-white rounded-t-lg"
+      >
         <h3 class="font-medium">Chat</h3>
         <button
           @click="toggleChat"
@@ -86,21 +85,16 @@ const sendMessage = () => {
         <div
           v-for="(message, index) in messages"
           :key="index"
-          style="margin-bottom: 1rem; margin-top: 1rem;"
+          style="margin-bottom: 1rem; margin-top: 1rem"
           :class="[
             'max-w-[80%] rounded-2xl p-4 shadow-sm',
             message.isUser
               ? 'bg-indigo-600 text-white ml-auto rounded-br-none'
-              : 'bg-gray-100 text-gray-800 rounded-bl-none'
+              : 'bg-gray-100 text-gray-800 rounded-bl-none',
           ]"
         >
           <div class="text-sm">{{ message.text }}</div>
-          <div 
-            :class="[
-              'text-xs mt-1',
-              message.isUser ? 'text-indigo-200' : 'text-gray-500'
-            ]"
-          >
+          <div :class="['text-xs mt-1', message.isUser ? 'text-indigo-200' : 'text-gray-500']">
             {{ new Date().toLocaleTimeString() }}
           </div>
         </div>
@@ -125,4 +119,4 @@ const sendMessage = () => {
       </div>
     </div>
   </div>
-</template> 
+</template>

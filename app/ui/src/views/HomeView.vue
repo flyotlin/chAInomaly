@@ -3,7 +3,6 @@
   import TransactionList from '../components/TransactionList.vue';
   import { ref } from 'vue';
 
-
   import GraphSection from '../components/GraphSection.vue';
   import Chat from '../components/Chat.vue';
 

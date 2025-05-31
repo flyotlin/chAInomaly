@@ -68,7 +68,13 @@
     // Create nodes and links
     const nodes = new Set<string>();
     const fromNodes = new Set<string>();
-    const links: { source: string; target: string; value: number; count: number; totalValue: string }[] = [];
+    const links: {
+      source: string;
+      target: string;
+      value: number;
+      count: number;
+      totalValue: string;
+    }[] = [];
     const linkCounts = new Map<string, { count: number; totalValue: number }>();
 
     // First pass: collect all nodes and their relationships
@@ -82,7 +88,7 @@
       const current = linkCounts.get(linkKey) || { count: 0, totalValue: 0 };
       linkCounts.set(linkKey, {
         count: current.count + 1,
-        totalValue: current.totalValue + parseFloat(tx.value)
+        totalValue: current.totalValue + parseFloat(tx.value),
       });
     });
 
@@ -94,7 +100,7 @@
         target,
         value: 1,
         count: data.count,
-        totalValue: data.totalValue.toFixed(4)
+        totalValue: data.totalValue.toFixed(4),
       });
     });
 
@@ -108,23 +114,25 @@
     const nodeMap = new Map(nodeArray.map(node => [node.id, node]));
 
     // Create typed links with proper node references
-    const typedLinks: Link[] = links.map(link => {
-      const sourceNode = nodeMap.get(link.source);
-      const targetNode = nodeMap.get(link.target);
-      
-      if (!sourceNode || !targetNode) {
-        console.error('Missing node reference:', { source: link.source, target: link.target });
-        return null;
-      }
+    const typedLinks: Link[] = links
+      .map(link => {
+        const sourceNode = nodeMap.get(link.source);
+        const targetNode = nodeMap.get(link.target);
 
-      return {
-        source: sourceNode,
-        target: targetNode,
-        value: link.value,
-        count: link.count,
-        totalValue: link.totalValue
-      };
-    }).filter((link): link is Link => link !== null);
+        if (!sourceNode || !targetNode) {
+          console.error('Missing node reference:', { source: link.source, target: link.target });
+          return null;
+        }
+
+        return {
+          source: sourceNode,
+          target: targetNode,
+          value: link.value,
+          count: link.count,
+          totalValue: link.totalValue,
+        };
+      })
+      .filter((link): link is Link => link !== null);
 
     console.log('Created nodes and links:', {
       nodes: nodeArray.length,
