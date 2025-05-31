@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { generateText } from '../services/gemini'
 
 interface Transaction {
   hash: string
@@ -20,12 +21,44 @@ const props = defineProps<{
 }>()
 
 const isExpanded = ref(false)
+const summary = ref('')
+const isGeneratingSummary = ref(false)
+
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value
 }
 
 const truncateHash = (hash: string) => {
-  return `${hash.slice(0, 16)}`
+  return hash.slice(0, 16) + '...'
+}
+
+const generateSummary = async () => {
+  if (summary.value || isGeneratingSummary.value) return
+  
+  isGeneratingSummary.value = true
+  try {
+    const prompt = `Analyze this Ethereum transaction and provide a brief summary focusing on key points:
+
+Transaction Hash: ${props.transaction.hash}
+From: ${props.transaction.from}
+To: ${props.transaction.to}
+Value: ${props.transaction.value}
+Method: ${props.transaction.method}
+Status: ${props.transaction.status}
+Fee: ${props.transaction.fee.value}
+Timestamp: ${props.transaction.timestamp}
+Block Number: ${props.transaction.blockNumber}
+
+Please provide a concise 2-3 sentence summary highlighting any notable aspects of this transaction.`
+
+    const response = await generateText(prompt)
+    summary.value = response.text
+  } catch (error) {
+    console.error('Failed to generate summary:', error)
+    summary.value = 'Failed to generate summary'
+  } finally {
+    isGeneratingSummary.value = false
+  }
 }
 </script>
 
@@ -76,40 +109,52 @@ const truncateHash = (hash: string) => {
       </div>
       <div class="ml-4 flex-shrink-0 flex items-center space-x-2">
         <div class="group relative">
-          <button class="text-gray-400 hover:text-gray-500 focus:outline-none px-2">
+          <button 
+            class="text-gray-400 hover:text-gray-500 focus:outline-none px-2"
+            @mouseenter="generateSummary"
+          >
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
             </svg>
           </button>
-          <div class="absolute right-0 bottom-full mb-2 hidden group-hover:block">
-            <div class="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-              Hello placeholder
+          <div class="absolute right-0 bottom-full mb-2 hidden group-hover:block w-64">
+            <div class="bg-gray-900 text-white text-xs rounded py-2 px-3">
+              <div v-if="isGeneratingSummary" class="flex items-center space-x-2">
+                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Generating summary...</span>
+              </div>
+              <div v-else class="whitespace-normal">
+                {{ summary || 'Hover to generate summary' }}
+              </div>
             </div>
             <div class="w-2 h-2 bg-gray-900 transform rotate-45 absolute -bottom-1 right-4"></div>
           </div>
         </div>
 
-        <div class="group relative">
-          <button
-            @click="toggleExpand"
-            class="text-gray-400 hover:text-gray-500 focus:outline-none"
+      <div class="group relative">
+        <button
+          @click="toggleExpand"
+          class="text-gray-400 hover:text-gray-500 focus:outline-none"
+        >
+          <svg
+            class="h-5 w-5 transform transition-transform duration-200"
+            :class="{ 'rotate-180': isExpanded }"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
           >
-            <svg 
-              class="h-5 w-5 transform transition-transform duration-200"
-              :class="{ 'rotate-180': isExpanded }"
-              xmlns="http://www.w3.org/2000/svg" 
-              viewBox="0 0 20 20" 
-              fill="currentColor"
-            >
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-          </button>
-        </div>
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
       </div>
     </div>
 
     <!-- Collapsible Details Section -->
-    <div 
+    <div
       v-show="isExpanded"
       class="mt-4 pl-20 transition-all duration-200 ease-in-out"
     >
