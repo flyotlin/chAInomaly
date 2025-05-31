@@ -22,11 +22,11 @@ import TransactionList from './components/TransactionList.vue'
       </div>
     </nav>
 
-    <main class="flex-grow py-8 w-full">
-      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-8">
-          <h2 class="text-3xl font-bold text-gray-900 mb-2">Transaction Explorer</h2>
-          <p class="text-lg text-gray-600">Enter an Ethereum address to view its recent transactions</p>
+    <main class="flex-grow flex items-center justify-center w-full py-32">
+      <div class="container mx-auto px-8 sm:px-12 lg:px-16">
+        <div class="text-center mb-12 py-5">
+          <h2 class="text-4xl font-bold text-gray-900 mb-4">OP Mainnet Transaction Explorer</h2>
+          <p class="text-lg text-gray-600 py-2">Enter an Ethereum address to view its recent transactions</p>
         </div>
         <TransactionList />
       </div>

@@ -45,8 +45,8 @@ const fetchTransactions = async () => {
 </script>
 
 <template>
-  <div class="w-full">
-    <div class="mb-6">
+  <div class="w-full flex flex-col items-center">
+    <div class="mb-6 max-w-2xl w-full">
       <label for="address" class="block text-sm font-medium text-gray-700">Ethereum Address</label>
       <div class="mt-1 flex rounded-md shadow-sm">
         <input
@@ -69,7 +69,7 @@ const fetchTransactions = async () => {
 
     <div v-if="error" class="text-red-600 mb-4">{{ error }}</div>
 
-    <div v-if="transactions.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md">
+    <div v-if="transactions.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md w-full">
       <ul class="divide-y divide-gray-200">
         <li v-for="tx in transactions" :key="tx.hash" class="px-6 py-4">
           <div class="flex items-center justify-between">
