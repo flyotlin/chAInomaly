@@ -29,7 +29,7 @@
   };
 
   const truncateHash = (hash: string) => {
-    return hash.slice(0, 16) + '...';
+    return hash.slice(0, 16);
   };
 
   const getBlockscoutUrl = (hash: string) => {
