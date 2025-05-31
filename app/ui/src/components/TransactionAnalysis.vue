@@ -16,7 +16,7 @@ const toggleExpand = () => {
 </script>
 
 <template>
-  <div v-if="analyzing || analysis?.text" class="w-full max-w-2xl mb-8">
+  <div v-if="analyzing || analysis?.text" class="w-full max-w-2xl">
     <div class="bg-white shadow-lg rounded-lg border border-gray-100 overflow-hidden">
       <CollapsibleHeader
         title="Transaction Analysis"

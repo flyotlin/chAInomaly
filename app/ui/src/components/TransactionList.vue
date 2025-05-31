@@ -147,7 +147,7 @@ const loadPreviousPage = () => {
 </script>
 
 <template>
-  <div class="w-full flex flex-col items-center space-y-8">
+  <div class="w-full flex flex-col items-center space-y-20">
     <SearchInput
       v-model:address="address"
       :loading="loading"
