@@ -1,33 +1,55 @@
 <script setup lang="ts">
-  import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { sendMessage, loadChatHistory, saveChatHistory, type ChatMessage } from '../services/gemini';
 
-  const isOpen = ref(false);
-  const messages = ref<{ text: string; isUser: boolean }[]>([]);
-  const newMessage = ref('');
+const isOpen = ref(false);
+const messages = ref<ChatMessage[]>([]);
+const newMessage = ref('');
+const isGenerating = ref(false);
 
-  const toggleChat = () => {
-    isOpen.value = !isOpen.value;
+const toggleChat = () => {
+  isOpen.value = !isOpen.value;
+};
+
+const handleSendMessage = async () => {
+  if (!newMessage.value.trim() || isGenerating.value) return;
+  
+  const userMessage: ChatMessage = {
+    text: newMessage.value,
+    isUser: true,
+    timestamp: new Date().toISOString()
   };
-
-  const sendMessage = () => {
-    if (!newMessage.value.trim()) return;
-
+  
+  messages.value.push(userMessage);
+  newMessage.value = '';
+  isGenerating.value = true;
+  
+  try {
+    const response = await sendMessage(userMessage.text);
     messages.value.push({
-      text: newMessage.value,
-      isUser: true,
+      text: response,
+      isUser: false,
+      timestamp: new Date().toISOString()
     });
+    saveChatHistory();
+  } catch (error) {
+    console.error('Failed to get response:', error);
+    messages.value.push({
+      text: 'Sorry, I encountered an error. Please try again.',
+      isUser: false,
+      timestamp: new Date().toISOString()
+    });
+  } finally {
+    isGenerating.value = false;
+  }
+};
 
-    // Here you can add your chat logic to get response
-    // For now, we'll just echo back
-    setTimeout(() => {
-      messages.value.push({
-        text: `Echo: ${newMessage.value}`,
-        isUser: false,
-      });
-    }, 1000);
-
-    newMessage.value = '';
-  };
+onMounted(async () => {
+  const savedMessages = await loadChatHistory();
+  if (savedMessages.length > 0) {
+    messages.value = savedMessages;
+  }
+});
 </script>
 
 <template>
@@ -57,10 +79,8 @@
     <!-- Chat Dialog -->
     <div v-else class="bg-white rounded-lg shadow-xl w-96 h-[500px] flex flex-col">
       <!-- Header -->
-      <div
-        class="p-4 border-b flex justify-between items-center bg-indigo-600 text-white rounded-t-lg"
-      >
-        <h3 class="font-medium">Chat</h3>
+      <div class="p-4 border-b flex justify-between items-center bg-indigo-600 text-white rounded-t-lg">
+        <h3 class="font-medium">Chat with Gemini</h3>
         <button
           @click="toggleChat"
           class="text-white hover:text-gray-200 transition-colors duration-200"
@@ -95,25 +115,28 @@
         >
           <div class="text-sm">{{ message.text }}</div>
           <div :class="['text-xs mt-1', message.isUser ? 'text-indigo-200' : 'text-gray-500']">
-            {{ new Date().toLocaleTimeString() }}
+            {{ new Date(message.timestamp).toLocaleTimeString() }}
           </div>
         </div>
       </div>
 
       <!-- Input -->
       <div class="p-4 border-t bg-gray-50">
-        <form @submit.prevent="sendMessage" class="flex space-x-2">
+        <form @submit.prevent="handleSendMessage" class="flex space-x-2">
           <input
             v-model="newMessage"
             type="text"
             placeholder="Type your message..."
             class="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 bg-white"
+            :disabled="isGenerating"
           />
           <button
             type="submit"
-            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200 shadow-sm"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="isGenerating"
           >
-            Send
+            <span v-if="isGenerating">...</span>
+            <span v-else>Send</span>
           </button>
         </form>
       </div>
