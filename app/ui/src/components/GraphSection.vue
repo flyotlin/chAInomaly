@@ -120,6 +120,21 @@ const drawGraph = () => {
     .attr('viewBox', [0, 0, graphContainer.value.clientWidth, graphContainer.value.clientHeight])
     .attr('style', 'max-width: 100%; height: auto;')
 
+  // Define arrow marker
+  svg.append('defs').append('marker')
+    .attr('id', 'arrowhead')
+    .attr('viewBox', '-0 -5 10 10')
+    .attr('refX', 20)
+    .attr('refY', 0)
+    .attr('orient', 'auto')
+    .attr('markerWidth', 6)
+    .attr('markerHeight', 6)
+    .attr('xoverflow', 'visible')
+    .append('svg:path')
+    .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+    .attr('fill', '#000')
+    .style('stroke', 'none')
+
   // Create links
   const link = svg.append('g')
     .selectAll<SVGLineElement, Link>('line')
@@ -128,6 +143,7 @@ const drawGraph = () => {
     .attr('stroke', '#000')
     .attr('stroke-opacity', 0.8)
     .attr('stroke-width', 2)
+    .attr('marker-end', 'url(#arrowhead)')
 
   // Create nodes
   const node = svg.append('g')
