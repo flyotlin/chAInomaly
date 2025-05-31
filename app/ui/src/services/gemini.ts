@@ -4,7 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 // Get the generative model
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
 export interface GeminiResponse {
   text: string;
@@ -16,13 +16,13 @@ export const generateText = async (prompt: string): Promise<GeminiResponse> => {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return {
-      text: response.text()
+      text: response.text(),
     };
   } catch (error) {
     console.error('Error generating text:', error);
     return {
       text: '',
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
     };
   }
 };
@@ -42,13 +42,13 @@ export const generateChatResponse = async (
     const result = await chat.sendMessage(messages[messages.length - 1].content);
     const response = await result.response;
     return {
-      text: response.text()
+      text: response.text(),
     };
   } catch (error) {
     console.error('Error generating chat response:', error);
     return {
       text: '',
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
     };
   }
-}; 
+};
