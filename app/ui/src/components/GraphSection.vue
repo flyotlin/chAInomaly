@@ -31,6 +31,7 @@ interface Link extends d3.SimulationLinkDatum<Node> {
   source: Node
   target: Node
   value: number
+  count: number
 }
 
 const props = defineProps<{
@@ -66,16 +67,28 @@ const drawGraph = () => {
   // Create nodes and links
   const nodes = new Set<string>()
   const fromNodes = new Set<string>()
-  const links: { source: string; target: string; value: number }[] = []
+  const links: { source: string; target: string; value: number; count: number }[] = []
+  const linkCounts = new Map<string, number>()
 
   props.transactions.forEach(tx => {
     nodes.add(tx.from)
     nodes.add(tx.to)
     fromNodes.add(tx.from)
+    
+    // Create a unique key for each from-to pair
+    const linkKey = `${tx.from}-${tx.to}`
+    const currentCount = linkCounts.get(linkKey) || 0
+    linkCounts.set(linkKey, currentCount + 1)
+  })
+
+  // Create links with counts
+  linkCounts.forEach((count, key) => {
+    const [source, target] = key.split('-')
     links.push({
-      source: tx.from,
-      target: tx.to,
-      value: parseFloat(tx.value) || 0
+      source,
+      target,
+      value: 1, // We'll use count for the label instead
+      count
     })
   })
 
@@ -84,11 +97,13 @@ const drawGraph = () => {
     isFrom: fromNodes.has(id),
     isInputAddress: id.toLowerCase() === props.address.toLowerCase()
   }))
+
   const nodeMap = new Map(nodeArray.map(node => [node.id, node]))
   const typedLinks: Link[] = links.map(link => ({
     source: nodeMap.get(link.source)!,
     target: nodeMap.get(link.target)!,
-    value: link.value
+    value: link.value,
+    count: link.count
   }))
 
   console.log('Created nodes and links:', {
@@ -145,6 +160,17 @@ const drawGraph = () => {
     .attr('stroke-width', 2)
     .attr('marker-end', 'url(#arrowhead)')
 
+  // Add edge labels
+  const edgeLabels = svg.append('g')
+    .selectAll<SVGTextElement, Link>('text')
+    .data(typedLinks)
+    .join('text')
+    .attr('dy', -5)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 10)
+    .attr('fill', '#666')
+    .text(d => d.count)
+
   // Create nodes
   const node = svg.append('g')
     .selectAll<SVGCircleElement, Node>('circle')
@@ -171,6 +197,18 @@ const drawGraph = () => {
       .attr('y1', d => d.source.y || 0)
       .attr('x2', d => d.target.x || 0)
       .attr('y2', d => d.target.y || 0)
+
+    edgeLabels
+      .attr('x', d => {
+        const x1 = d.source.x || 0
+        const x2 = d.target.x || 0
+        return x1 + (x2 - x1) * 0.5
+      })
+      .attr('y', d => {
+        const y1 = d.source.y || 0
+        const y2 = d.target.y || 0
+        return y1 + (y2 - y1) * 0.5
+      })
 
     node
       .attr('cx', d => d.x || 0)
