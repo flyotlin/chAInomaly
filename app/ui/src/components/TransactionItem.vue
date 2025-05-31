@@ -42,7 +42,7 @@ const truncateHash = (hash: string) => {
             </div>
           </div>
           <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center">
               <div class="group relative">
                 <p class="text-sm font-medium text-indigo-600">
                   {{ truncateHash(transaction.hash) }}
@@ -54,20 +54,6 @@ const truncateHash = (hash: string) => {
                   <div class="w-2 h-2 bg-gray-900 transform rotate-45 absolute -bottom-1 left-4"></div>
                 </div>
               </div>
-              <button 
-                @click="toggleExpand"
-                class="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none"
-              >
-                <svg 
-                  class="h-5 w-5 transform transition-transform duration-200"
-                  :class="{ 'rotate-180': isExpanded }"
-                  xmlns="http://www.w3.org/2000/svg" 
-                  viewBox="0 0 20 20" 
-                  fill="currentColor"
-                >
-                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                </svg>
-              </button>
             </div>
             <div class="mt-2">
               <span class="text-sm text-gray-500">{{ transaction.timestamp }}</span>
@@ -88,9 +74,9 @@ const truncateHash = (hash: string) => {
           <p class="text-sm text-gray-500">Fee: {{ transaction.fee.value }}</p>
         </div>
       </div>
-      <div class="ml-4 flex-shrink-0">
+      <div class="ml-4 flex-shrink-0 flex items-center space-x-2">
         <div class="group relative">
-          <button class="text-gray-400 hover:text-gray-500 focus:outline-none">
+          <button class="text-gray-400 hover:text-gray-500 focus:outline-none px-2">
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
             </svg>
@@ -101,6 +87,23 @@ const truncateHash = (hash: string) => {
             </div>
             <div class="w-2 h-2 bg-gray-900 transform rotate-45 absolute -bottom-1 right-4"></div>
           </div>
+        </div>
+
+        <div class="group relative">
+          <button
+            @click="toggleExpand"
+            class="text-gray-400 hover:text-gray-500 focus:outline-none"
+          >
+            <svg 
+              class="h-5 w-5 transform transition-transform duration-200"
+              :class="{ 'rotate-180': isExpanded }"
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 20 20" 
+              fill="currentColor"
+            >
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>
