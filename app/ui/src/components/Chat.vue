@@ -23,10 +23,10 @@ const newMessage = ref('');
 const isGenerating = ref(false);
 
 // Get the selected transactions from the parent
-const selectedTransactions = inject<{ set: Set<string> }>('selectedTransactions', { set: new Set() });
+const selectedTransactions = inject<{ set: Set<string>, data: Map<string, Transaction> }>('selectedTransactions', { set: new Set(), data: new Map() });
 
 // Create a computed property to track selected transactions
-const selectedTransactionsList = computed(() => Array.from(selectedTransactions.set));
+const selectedTransactionsList = computed(() => Array.from(selectedTransactions.data.values()));
 
 // Watch for changes to selected transactions
 watch(selectedTransactionsList, (newList) => {
@@ -55,10 +55,17 @@ const handleSendMessage = async () => {
     // Include transaction context in the prompt if available
     let prompt = userMessage.text;
     if (selectedTransactionsList.value.length > 0) {
-      const context = `Context: Analyzing the following transactions:\n${selectedTransactionsList.value.map((hash: string) => `
-Transaction ${hash}:
-- Hash: ${hash}
-- Selected for analysis
+      const context = `Context: Analyzing the following transactions:\n${selectedTransactionsList.value.map((tx: Transaction) => `
+Transaction ${tx.hash}:
+- Hash: ${tx.hash}
+- From: ${tx.from}
+- To: ${tx.to}
+- Value: ${tx.value}
+- Method: ${tx.method}
+- Status: ${tx.status}
+- Fee: ${tx.fee.value}
+- Timestamp: ${tx.timestamp}
+- Block Number: ${tx.blockNumber}
 `).join('\n')}\n\nQuestion: ${userMessage.text}`;
       prompt = context;
     }
@@ -151,8 +158,8 @@ onMounted(async () => {
         <div v-if="selectedTransactionsList.length > 0" class="bg-indigo-50 rounded-lg p-4 mb-4">
           <div class="text-sm text-indigo-800 font-medium mb-2">Selected Transactions:</div>
           <div class="space-y-2">
-            <div v-for="hash in selectedTransactionsList" :key="hash" class="text-xs text-indigo-600 font-mono">
-              {{ hash.slice(0, 12) }}
+            <div v-for="tx in selectedTransactionsList" :key="tx.hash" class="text-xs text-indigo-600 font-mono">
+              {{ tx.hash.slice(0, 12) }}
             </div>
           </div>
         </div>

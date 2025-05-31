@@ -38,7 +38,7 @@
   const analysis = ref<GeminiResponse | null>(null);
   const analyzing = ref(false);
   const isHistoryExpanded = ref(true);
-  const selectedTransactions = inject<{ set: Set<string> }>('selectedTransactions', { set: new Set() });
+  const selectedTransactions = inject<{ set: Set<string>, data: Map<string, Transaction> }>('selectedTransactions', { set: new Set(), data: new Map() });
 
   const toggleHistory = () => {
     isHistoryExpanded.value = !isHistoryExpanded.value;
@@ -48,9 +48,11 @@
     console.log('Selecting transaction:', transaction.hash);
     if (selectedTransactions.set.has(transaction.hash)) {
       selectedTransactions.set.delete(transaction.hash);
+      selectedTransactions.data.delete(transaction.hash);
       console.log('Transaction deselected. Current set:', Array.from(selectedTransactions.set));
     } else {
       selectedTransactions.set.add(transaction.hash);
+      selectedTransactions.data.set(transaction.hash, transaction);
       console.log('Transaction selected. Current set:', Array.from(selectedTransactions.set));
     }
   };

@@ -2,9 +2,24 @@
   import { RouterLink, RouterView } from 'vue-router';
   import { ref, provide, reactive } from 'vue';
 
+  interface Transaction {
+    hash: string;
+    from: string;
+    to: string;
+    value: string;
+    timestamp: string;
+    blockNumber: number;
+    method: string | null;
+    status: string;
+    fee: {
+      value: string;
+    };
+  }
+
   // Create and provide the selected transactions state
   const selectedTransactions = reactive({
-    set: new Set<string>()
+    set: new Set<string>(),
+    data: new Map<string, Transaction>()
   });
 
   provide('selectedTransactions', selectedTransactions);
