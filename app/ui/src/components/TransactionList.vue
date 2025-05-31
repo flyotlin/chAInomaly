@@ -22,7 +22,7 @@ const fetchTransactions = async () => {
   error.value = ''
   
   try {
-    const response = await fetch(`https://blockscout.com/eth/mainnet/api/v2/addresses/${address.value}/transactions`)
+    const response = await fetch(`https://optimism.blockscout.com/api/v2/addresses/${address.value}/transactions`)
     const data = await response.json()
     
     if (data.data) {
@@ -53,7 +53,7 @@ const fetchTransactions = async () => {
           type="text"
           id="address"
           v-model="address"
-          class="flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          class="flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
           placeholder="0x..."
           @keyup.enter="fetchTransactions"
         />
