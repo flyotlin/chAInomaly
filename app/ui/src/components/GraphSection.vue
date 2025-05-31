@@ -39,7 +39,7 @@
     address: string;
   }>();
 
-  const isExpanded = ref(false);
+  const isExpanded = ref(true);
   const graphContainer = ref<HTMLElement | null>(null);
 
   const toggleExpand = async () => {
