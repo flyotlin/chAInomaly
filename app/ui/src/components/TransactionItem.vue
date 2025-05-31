@@ -32,6 +32,10 @@
     return hash.slice(0, 16) + '...';
   };
 
+  const getBlockscoutUrl = (hash: string) => {
+    return `https://optimism.blockscout.com/tx/${hash}`;
+  };
+
   const generateSummary = async () => {
     if (summary.value || isGeneratingSummary.value) return;
 
@@ -86,9 +90,14 @@ Focus only on the most important aspects. Keep it extremely concise.`;
           <div class="flex-1 min-w-0">
             <div class="flex items-center">
               <div class="group relative">
-                <p class="text-sm font-medium text-indigo-600">
+                <a
+                  :href="getBlockscoutUrl(transaction.hash)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors duration-150"
+                >
                   {{ truncateHash(transaction.hash) }}
-                </p>
+                </a>
                 <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block">
                   <div class="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
                     {{ transaction.hash }}
