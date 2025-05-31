@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, inject, computed, watch } from 'vue';
-import type { Ref } from 'vue';
 import { sendMessage, loadChatHistory, saveChatHistory, type ChatMessage } from '../services/gemini';
+import { marked } from 'marked';
 
 interface Transaction {
   hash: string;
@@ -128,7 +128,7 @@ onMounted(async () => {
         <div class="flex items-center space-x-2">
           <h3 class="font-medium">Chat with Gemini</h3>
           <div v-if="selectedTransactionsList.length > 0" class="flex items-center space-x-2">
-            <span class="mx-4 text-xs bg-indigo-500 px-2 py-1 rounded-full">
+            <span class="text-xs bg-indigo-500 px-2 py-1 rounded-full">
               {{ selectedTransactionsList.length }} selected
             </span>
           </div>
@@ -175,7 +175,11 @@ onMounted(async () => {
               : 'bg-gray-100 text-gray-800 rounded-bl-none',
           ]"
         >
-          <div class="text-sm">{{ message.text }}</div>
+          <div 
+            class="text-sm prose prose-sm max-w-none break-words"
+            :class="message.isUser ? 'prose-invert' : ''"
+            v-html="message.isUser ? message.text : marked(message.text)"
+          ></div>
           <div :class="['text-xs mt-1', message.isUser ? 'text-indigo-200' : 'text-gray-500']">
             {{ new Date(message.timestamp).toLocaleTimeString() }}
           </div>
@@ -205,3 +209,119 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<style>
+.prose {
+  max-width: 65ch;
+  color: #374151;
+}
+
+.prose h1 {
+  color: #111827;
+  font-weight: 800;
+  font-size: 2.25em;
+  margin-top: 0;
+  margin-bottom: 0.8888889em;
+  line-height: 1.1111111;
+}
+
+.prose h2 {
+  color: #111827;
+  font-weight: 700;
+  font-size: 1.5em;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  line-height: 1.3333333;
+}
+
+.prose h3 {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1.25em;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  line-height: 1.6;
+}
+
+.prose p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}
+
+.prose ul {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  list-style-type: disc;
+  padding-left: 1.625em;
+}
+
+.prose ol {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  list-style-type: decimal;
+  padding-left: 1.625em;
+}
+
+.prose li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose pre {
+  color: #e5e7eb;
+  background-color: #1f2937;
+  overflow-x: auto;
+  font-size: 0.875em;
+  line-height: 1.7142857;
+  margin-top: 1.7142857em;
+  margin-bottom: 1.7142857em;
+  border-radius: 0.375rem;
+  padding: 0.8571429em 1.1428571em;
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.prose blockquote {
+  font-weight: 500;
+  font-style: italic;
+  color: #111827;
+  border-left-width: 0.25rem;
+  border-left-color: #e5e7eb;
+  quotes: '\201C' '\201D' '\2018' '\2019';
+  margin-top: 1.6em;
+  margin-bottom: 1.6em;
+  padding-left: 1em;
+}
+
+/* Invert colors for user messages */
+.prose-invert {
+  color: #e5e7eb;
+}
+
+.prose-invert h1,
+.prose-invert h2,
+.prose-invert h3 {
+  color: #f9fafb;
+}
+
+.prose-invert code {
+  color: #f9fafb;
+  background-color: #374151;
+}
+
+.prose-invert blockquote {
+  color: #f9fafb;
+  border-left-color: #4b5563;
+}
+
+.prose code {
+  color: #111827;
+  font-weight: 600;
+  font-size: 0.875em;
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  word-break: break-word;
+}
+</style>
