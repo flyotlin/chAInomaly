@@ -79,23 +79,25 @@ Focus only on the most important aspects. Keep it extremely concise.`;
   <li class="px-6 py-6 hover:bg-gray-50 transition duration-150 ease-in-out" :class="{ 'bg-indigo-50': isSelected }">
     <div class="flex items-start justify-between">
       <div class="flex-1 min-w-0">
-        <div class="flex items-start space-x-6">
-          <div class="flex-shrink-0 pr-4">
-            <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-              <svg
-                class="h-6 w-6 text-indigo-600"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </div>
-          </div>
+        <div class="flex space-x-12 items-center">
+          <button
+            @click="toggleSelect"
+            class="text-gray-400 hover:text-indigo-600 focus:outline-none px-2 flex items-center"
+            :class="{ 'text-indigo-600': isSelected }"
+          >
+            <svg
+              class="h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
           <div class="flex-1 min-w-0">
             <div class="flex items-center">
               <div class="group relative">
@@ -137,26 +139,6 @@ Focus only on the most important aspects. Keep it extremely concise.`;
         </div>
       </div>
       <div class="ml-4 flex-shrink-0 flex items-center space-x-2">
-        <div class="group relative">
-          <button
-            @click="toggleSelect"
-            class="text-gray-400 hover:text-indigo-600 focus:outline-none px-2"
-            :class="{ 'text-indigo-600': isSelected }"
-          >
-            <svg
-              class="h-5 w-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </button>
-        </div>
 
         <div class="group relative">
           <button

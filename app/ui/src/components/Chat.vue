@@ -121,14 +121,9 @@ onMounted(async () => {
         <div class="flex items-center space-x-2">
           <h3 class="font-medium">Chat with Gemini</h3>
           <div v-if="selectedTransactionsList.length > 0" class="flex items-center space-x-2">
-            <span class="text-xs bg-indigo-500 px-2 py-1 rounded-full">
+            <span class="mx-4 text-xs bg-indigo-500 px-2 py-1 rounded-full">
               {{ selectedTransactionsList.length }} selected
             </span>
-            <div class="text-xs text-indigo-200">
-              <span v-if="selectedTransactionsList.length === 1">Transaction</span>
-              <span v-else>Transactions</span>
-              selected for analysis
-            </div>
           </div>
         </div>
         <button
@@ -157,7 +152,7 @@ onMounted(async () => {
           <div class="text-sm text-indigo-800 font-medium mb-2">Selected Transactions:</div>
           <div class="space-y-2">
             <div v-for="hash in selectedTransactionsList" :key="hash" class="text-xs text-indigo-600 font-mono">
-              {{ hash.slice(0, 6) }}...{{ hash.slice(-4) }}
+              {{ hash.slice(0, 12) }}
             </div>
           </div>
         </div>
